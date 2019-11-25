@@ -8,7 +8,13 @@ const server = dgram.createSocket('udp4');
 const WebSocket = require('ws');
 const wss = new WebSocket.Server({ port: WS_PORT });
 
+const MODES = {
+    'BANDPOWER': 'BANDPOWER',
+    'FFT': 'FFT',
+    'TIMESERIES': 'TIMESERIES'
+}
 
+const mode = MODES.BANDPOWER;
 
 server.on('listening', () => {
     console.log(`UDP Server listening on port: ${PORT}...`);
@@ -37,23 +43,32 @@ wss.on('connection', function connection(ws) {
 
 server.on('message', (message, remote)=> {
 
-    let bandpower = []; 
+    let broadcastData;
 
-    const channels = JSON.parse(message.toString('utf8')).data;
+    const eegData = JSON.parse(message.toString('utf8')).data;
 
-    channels.forEach((channelData, channelIndex) => {
-        const [delta,theta,alpha,beta,gamma] = channelData;
-        bandpower.push({ 
-            delta, 
-            theta, 
-            alpha, 
-            gamma, 
-            channel: channelIndex + 1
-         });
-    })
+    switch (mode) {
+        case MODES.BANDPOWER:
+            eegData.forEach((channelData, channelIndex) => {
+                broadcastData = broadcastData || [];
+                const [delta, theta, alpha, beta, gamma] = channelData;
+                broadcastData.push({
+                    delta,
+                    theta,
+                    alpha,
+                    gamma,
+                    beta,
+                    channel: channelIndex + 1
+                });
+            });
+        break;
+        default:
+            broadcastData = eegData;
+        break;
+    }
 
-    if(wss.clients.size && Math.round(Math.random()*(10)) === 5){
-        wss.broadcast(bandpower);
+    if(wss.clients.size || Math.round(Math.random()*(10)) === 5){
+        wss.broadcast(broadcastData);
         console.debug(`Broadcasted to ${wss.clients.size} clients | ${new Date().getTime()}`);
     }
 

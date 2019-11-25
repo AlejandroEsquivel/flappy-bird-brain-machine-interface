@@ -29,6 +29,7 @@
     "webpack-dev-server": "^3.9.0"
   },
   "dependencies": {
+    "bootstrap": "^4.3.1",
     "chart.js": "^2.9.3",
     "isomorphic-ws": "^4.0.1",
     "jquery": "^3.4.1",
