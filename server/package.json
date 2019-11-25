@@ -1,0 +1,20 @@
+{
+  "name": "eeg-udp-websocket",
+  "version": "1.0.0",
+  "description": "Gets FFT information from OpenBCI interface via UDP, sends processed data to browser via websockets.",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alejandro Esquivel",
+  "license": "ISC",
+  "dependencies": {
+    "plotly": "^1.0.6",
+    "ws": "^7.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.1"
+  }
+}
