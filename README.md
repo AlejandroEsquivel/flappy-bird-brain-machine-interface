@@ -2,7 +2,7 @@
 
 The purpose of this project is to be able to play Flappy Bird using an EEG, primarily focusing on the ratio of alpha to beta powerbands.
 
-## Using OpenBCI 
+## Using OpenBCI Cyton Circuit + EEG Cap
 
 ### Browser Game 
 
