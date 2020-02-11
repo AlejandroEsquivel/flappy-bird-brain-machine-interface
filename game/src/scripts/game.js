@@ -8,7 +8,7 @@ require('bootstrap/dist/css/bootstrap.min.css');
 
 window.$ = require("jquery");
 const Sprite = require('./classes/Sprite');
-const WebSocket = require('isomorphic-ws');
+const WebSocket = require('reconnectingwebsocket');
 const BarChart = require('./classes/BarChart');
 
 // coordinates measured from top-left (0,0) origin
@@ -35,12 +35,14 @@ const bird = new Sprite('./images/bird.png');
 const background = new Sprite('./images/bg.png');
 const ground = new Sprite('./images/fg.png');
 
+// 0-indexed EEG Channel
+let CHANNEL = 1;
+
 // initilize Game State & Constants
 const PIPE_SPEED = 1;
 const BIRD_PROPEL_ACCELERATION = 50;
 const MAX_PIPE_HEIGHT_PROPORTION = 0.50;
 const DRAW_ONCE = 'DRAW_ONCE';
-const CHANNEL = 6;
 const ACTION_TYPES = {
     'UP': 'UP',
     'DOWN': 'DOWN'
@@ -164,26 +166,47 @@ Promise
 
     });
 
-// Event Listeners
+// Generate DOM
+(function generateChannelOptions (){ 
+    [...Array(8)].forEach((n,index)=>{
+        const channel = index+1;
+        const option = $('<option></option>').text(`Channel ${channel}`).val(channel);
+        option.appendTo($('#channel-selection'));
+    })
+})();
 
+// Event Listeners
 $('#start-game-btn').click(() => {
     game.play();
 });
+
+$('#channel-selection').change(function(){
+    CHANNEL = parseInt(this.value);
+})
+
+const log = (msg)=> {
+    const tailData = $('#eeg-data').val().split('\n').slice(0,25).join('\n');
+    $('#eeg-data').val(`${msg}\n${tailData}`);
+}
 
  ws.onmessage = function incoming({data}) {
 
     data = JSON.parse(data);
     
-    const channelBandpower = data.find(channelData => channelData.channel === CHANNEL);
+    const channelBandpower = data.find(channelData => channelData.channel == CHANNEL);
 
     let action;
 
     if(channelBandpower){
-        const { alpha, beta } = channelBandpower;
+        const { alpha, beta, delta } = channelBandpower;
 
-        game.state.bandpowerRatio = beta/alpha;
+        const R = alpha/beta;
 
-        if(game.state.bandpowerRatio > 1){
+        game.state.bandpowerRatio = R;
+
+        log(`${CHANNEL}: Alpha: ${alpha.toFixed(4)}, Beta: ${beta.toFixed(4)}, R: ${R.toFixed(4)}`);
+
+        if(game.state.bandpowerRatio < 1){
             action = ACTION_TYPES.UP;
         }
         else {
@@ -209,7 +232,5 @@ $('#start-game-btn').click(() => {
         else {
             bird.draw(null, GROUND_POSITION);
         }
-
     }
-    
 };

@@ -67,7 +67,7 @@ server.on('message', (message, remote)=> {
         break;
     }
 
-    if(wss.clients.size || Math.round(Math.random()*(10)) === 5){
+    if(wss.clients.size || Math.round(Math.random()*(10)) < 5){
         wss.broadcast(broadcastData);
         console.debug(`Broadcasted to ${wss.clients.size} clients | ${new Date().getTime()}`);
     }

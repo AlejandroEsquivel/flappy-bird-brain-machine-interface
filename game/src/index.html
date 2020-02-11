@@ -11,17 +11,18 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div class="container-fluid">
+    <div class="container-fluid" style="margin-top:20px">
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-lg-3 col-md-6">
                 <button id="start-game-btn" style="width: 288px; padding: 10px 20px; background-color: #1f7c84; border: none; color: white; outline: none;">
                   Start Game
                 </button>
                 <br/>
                 <canvas id="canvas" width="288" height="512"></canvas>
+                <select style="width:288px" id="channel-selection"></select>
             </div>
-            <div class="col-md-9">
-              
+            <div class="col-lg-9 col-md-6">
+              <textarea id="eeg-data" style="border: none; width: 500px; height:500px;"></textarea>
             </div>
           </div>
     </div>
