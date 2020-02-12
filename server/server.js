@@ -1,9 +1,16 @@
 const UDP_PORT = 12345;
 const WS_PORT = 1234;
+const HTTP_PORT = 8184;
 const HOST = '127.0.0.1';
 
 const dgram = require('dgram');
 const server = dgram.createSocket('udp4');
+const express = require('express');
+
+const bodyParser = require('body-parser');
+
+const app = express();
+app.use(bodyParser.json());
 
 const WebSocket = require('ws');
 const wss = new WebSocket.Server({ port: WS_PORT });
@@ -14,15 +21,13 @@ const MODES = {
     'TIMESERIES': 'TIMESERIES'
 }
 
+const SIGNAL_TYPES = {
+    'ATTENTION': 'attention',
+    'RELAXATION': 'relaxation'
+}
+
 const mode = MODES.BANDPOWER;
 
-server.on('listening', () => {
-    console.log(`UDP Server listening on port: ${UDP_PORT}...`);
-});
-
-wss.on('listening',() => {
-    console.log(`Waiting for Websocket client connections on port: ${WS_PORT}...`);
-})
 
 wss.broadcast = (data) =>{
     wss.clients.forEach(client => {
@@ -69,9 +74,18 @@ server.on('message', (message, remote)=> {
 
     if(wss.clients.size || Math.round(Math.random()*(10)) < 5){
         wss.broadcast(broadcastData);
-        console.debug(`Broadcasted to ${wss.clients.size} clients | ${new Date().getTime()}`);
+        //console.debug(`Broadcasted to ${wss.clients.size} clients | ${new Date().getTime()}`);
     }
 
+});
+
+app.post('/record', (req, res) => {
+    
+    const { signalType, data } = req.body;
+
+    return res.status(200).json({
+        signalType
+    });
 });
 
 // sever connections with inactive clients.
@@ -87,3 +101,15 @@ setInterval(function ping() {
 }, 1000*10);
 
 server.bind(UDP_PORT, HOST);
+
+app.listen(HTTP_PORT, ()=> {
+    console.log(`HTTP Server listening on port: ${HTTP_PORT}...`)
+});
+
+server.on('listening', () => {
+    console.log(`UDP Server listening on port: ${UDP_PORT}...`);
+});
+
+wss.on('listening',() => {
+    console.log(`Waiting for Websocket client connections on port: ${WS_PORT}...`);
+})

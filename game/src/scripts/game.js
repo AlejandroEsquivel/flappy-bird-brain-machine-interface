@@ -194,6 +194,7 @@ const channelSelection = $('#channel-selection');
 const dataSelection = $('#data-selection');
 const eegDataLog = $('#eeg-data');
 const recordingDataLog = $('#recording-data');
+const clearRecordingDataBtn = $('#clear-recorded-data-btn');
 
 startGameBtn.click(() => {
     game.play();
@@ -213,6 +214,16 @@ const updateRecordingData = (data)=>{
        window.game.recording[signalType].push(data);
     }
 }
+
+clearRecordingDataBtn.click(function(){
+    const signalType = dataSelection.val();
+    if(signalType){
+        window.game.recording.signalType = NULL;
+        window.game.recording[signalType] = [];
+        dataSelection.val(NULL);
+        $('.data').hide();
+    }
+})
 
 relaxationSignalBtn.click(function(){
 
