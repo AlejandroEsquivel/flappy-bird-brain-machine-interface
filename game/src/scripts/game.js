@@ -25,6 +25,11 @@ ws.onclose = function close() {
     console.log('Disconnected to websocket server');
 };
 
+//signal type constants
+const ATTENTION = 'attention';
+const RELAXATION = 'relaxation'; 
+const NULL = 'null';
+
 // global configuration
 window.assets = [];
 window.ctx = ctx;
@@ -39,9 +44,9 @@ const ground = new Sprite('./images/fg.png');
 let CHANNEL = 1;
 
 // initilize Game State & Constants
-const PIPE_SPEED = 1;
+const PIPE_SPEED = 2;
 const BIRD_PROPEL_ACCELERATION = 50;
-const MAX_PIPE_HEIGHT_PROPORTION = 0.50;
+const MAX_PIPE_HEIGHT_PROPORTION = 0.30;
 const DRAW_ONCE = 'DRAW_ONCE';
 const ACTION_TYPES = {
     'UP': 'UP',
@@ -52,6 +57,11 @@ let GROUND_POSITION; //calculated once assets load
 
 // state and game methods
 window.game = {
+    recording: {
+        signalType: null,
+        [ATTENTION]: [],
+        [RELAXATION]: []
+    },
     pipes: [],
     state: {
         assetsLoaded: false,
@@ -83,7 +93,7 @@ function setDefaultState() {
     game.pipes = [];
     game.state.over = false;
     game.state.started = false;
-    bird.coords = { x: bird.element.width, y: GROUND_POSITION };
+    bird.coords = { x: bird.element.width*5, y: GROUND_POSITION };
 }
 
 // Utility functions
@@ -141,7 +151,7 @@ async function drawFrame(cmd) {
     }
 
     ctx.fillText(`Score : ${game.state.score}`, 10, cvs.height - 20, 100);
-    ctx.fillText(`Beta/Alpha = ${game.state.bandpowerRatio.toFixed(3)}`, 10, cvs.height - 50,150)
+    ctx.fillText(`Alpha/Beta = ${game.state.bandpowerRatio.toFixed(3)}`, 10, cvs.height - 50,150)
 
     if (cmd !== DRAW_ONCE && !game.state.over) {
         requestAnimationFrame(drawFrame);
@@ -176,17 +186,89 @@ Promise
 })();
 
 // Event Listeners
-$('#start-game-btn').click(() => {
+
+const relaxationSignalBtn = $('#relaxation-signal-btn');
+const attentionSignalBtn = $('#attention-signal-btn');
+const startGameBtn = $('#start-game-btn');
+const channelSelection = $('#channel-selection');
+const dataSelection = $('#data-selection');
+const eegDataLog = $('#eeg-data');
+const recordingDataLog = $('#recording-data');
+
+startGameBtn.click(() => {
     game.play();
 });
 
-$('#channel-selection').change(function(){
+channelSelection.change(function(){
     CHANNEL = parseInt(this.value);
 })
 
-const log = (msg)=> {
-    const tailData = $('#eeg-data').val().split('\n').slice(0,25).join('\n');
-    $('#eeg-data').val(`${msg}\n${tailData}`);
+const setSignalType = (signalType)=>{
+    window.game.recording.signalType = signalType;
+}
+
+const updateRecordingData = (data)=>{
+    const signalType = window.game.recording.signalType;
+    if(signalType){
+       window.game.recording[signalType].push(data);
+    }
+}
+
+relaxationSignalBtn.click(function(){
+
+    const currentSignalType = window.game.recording.signalType;
+    let newSignalType = null;
+
+    if(currentSignalType === RELAXATION){
+        newSignalType = null;
+        relaxationSignalBtn.text('Record Relaxation Signal');
+    }
+    else {
+        newSignalType = RELAXATION;
+        relaxationSignalBtn.text('Stop Recording Relaxation Signal');
+        attentionSignalBtn.text('Record Attention Signal')
+    }
+    setSignalType(newSignalType);
+})
+
+attentionSignalBtn.click(function(){
+
+    const currentSignalType = window.game.recording.signalType;
+    let newSignalType = null;
+
+    if(currentSignalType === ATTENTION){
+        newSignalType = null;
+        attentionSignalBtn.text('Record Attention Signal');
+    }
+    else {
+        newSignalType = ATTENTION;
+        attentionSignalBtn.text('Stop Recording Attention Signal');
+        relaxationSignalBtn.text('Record Relaxation Signal')
+    }
+    setSignalType(newSignalType);
+})
+
+// Display Recording data
+dataSelection.change(function(){
+    const signalType = this.value;
+    if([RELAXATION,ATTENTION].indexOf(signalType) !== -1){
+        $('.data').show();
+        const data = window.game.recording[signalType];
+
+        const log = data.map(({alpha, beta, delta})=>{
+            return `Alpha: ${alpha}, Beta: ${beta}, Delta: ${delta}`
+        });
+
+        recordingDataLog.val(log.join('\n'));
+    }
+    else {
+        $('.data').hide();
+    }
+})
+
+const log = (el,msg)=> {
+    const tailData = el.val().split('\n').slice(0,50).join('\n');
+    el.val(`${msg}\n${tailData}`);
 }
 
  ws.onmessage = function incoming({data}) {
@@ -204,7 +286,7 @@ const log = (msg)=> {
 
         game.state.bandpowerRatio = R;
 
-        log(`${CHANNEL}: Alpha: ${alpha.toFixed(4)}, Beta: ${beta.toFixed(4)}, R: ${R.toFixed(4)}`);
+        log(eegDataLog, `${CHANNEL}: Alpha: ${alpha.toFixed(4)}, Beta: ${beta.toFixed(4)}, R: ${R.toFixed(4)}`);
 
         if(game.state.bandpowerRatio < 1){
             action = ACTION_TYPES.UP;
@@ -212,6 +294,8 @@ const log = (msg)=> {
         else {
             action = ACTION_TYPES.DOWN;
         }
+
+        updateRecordingData(channelBandpower);
     }
 
     if (game.state.over || !game.state.started) return;

@@ -1,4 +1,4 @@
-const PORT = 12345;
+const UDP_PORT = 12345;
 const WS_PORT = 1234;
 const HOST = '127.0.0.1';
 
@@ -17,7 +17,7 @@ const MODES = {
 const mode = MODES.BANDPOWER;
 
 server.on('listening', () => {
-    console.log(`UDP Server listening on port: ${PORT}...`);
+    console.log(`UDP Server listening on port: ${UDP_PORT}...`);
 });
 
 wss.on('listening',() => {
@@ -86,4 +86,4 @@ setInterval(function ping() {
     });
 }, 1000*10);
 
-server.bind(PORT, HOST);
+server.bind(UDP_PORT, HOST);

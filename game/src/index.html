@@ -11,20 +11,42 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div class="container-fluid" style="margin-top:20px">
-        <div class="row">
-            <div class="col-lg-3 col-md-6">
-                <button id="start-game-btn" style="width: 288px; padding: 10px 20px; background-color: #1f7c84; border: none; color: white; outline: none;">
-                  Start Game
-                </button>
-                <br/>
-                <canvas id="canvas" width="288" height="512"></canvas>
-                <select style="width:288px" id="channel-selection"></select>
-            </div>
-            <div class="col-lg-9 col-md-6">
-              <textarea id="eeg-data" style="border: none; width: 500px; height:500px;"></textarea>
-            </div>
-          </div>
+
+    <div>
+      <div style="width:800px; float:left;">
+        <button id="start-game-btn" style="width: 800px; padding: 10px 20px; background-color: #1f7c84; border: none; color: white; outline: none;">
+          Start Game
+        </button>
+        <br/>
+        <canvas id="canvas" width="800" height="512"></canvas>
+        <select style="width:800px" id="channel-selection"></select>
+        <br/>
+        <button id="attention-signal-btn" style="margin-top: 10px; width: 800px; padding: 10px 20px; background-color:#af0000; border: none; color: white; outline: none;">
+          Record Attention Signal
+        </button>
+        <button id="relaxation-signal-btn" style="width: 800px; padding: 10px 20px; background-color:#ff8100; border: none; color: white; outline: none;">
+          Record Relaxation Signal
+        </button>
+      </div>
+      <div style="width: calc(100% - 800px); float:left;">
+        <textarea id="eeg-data" style="border: none; width: 100%; height:680px; padding:0 10px"></textarea>
+      </div>
+    </div>
+    <div>
+      <br/>
+      <select style="width:100%" id="data-selection">
+        <option value="null">Game Mode</option>
+        <option value="attention">View Recorded Attention Data</option>
+        <option value="relaxation">View Recorded Relaxation Data</option>
+      </select>
+      <textarea style="width: 100%; border:none; height: 500px; display: none; " id="recording-data" class="data">
+      </textarea>
+      <button id="relaxation-signal-btn" style="width: 100%; padding: 10px 20px; background-color:#005eaf; border: none; color: white; outline: none; display: none" class="data">
+        Send Data
+      </button>
+      <button id="relaxation-signal-btn" style="width: 100%; padding: 10px 20px; background-color:black; border: none; color: white; outline: none; display: none" class="data">
+        Clear Data
+      </button>
     </div>
     
     <br/>
