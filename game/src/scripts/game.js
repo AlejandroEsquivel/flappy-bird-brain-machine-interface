@@ -67,6 +67,7 @@ window.game = {
     },
     play: () => {
         if(game.state.started){ return; }
+        game.state.score = 0;
         game.state.started = true;
         return generateNewPipe().then(drawFrame);
     },
@@ -84,7 +85,6 @@ window.game = {
 }
 
 function setDefaultState() {
-    game.state.score = 0;
     game.pipes = [];
     game.state.over = false;
     game.state.started = false;

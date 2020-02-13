@@ -51,7 +51,7 @@ const EEG = {
 
         const CHANNEL = this.channel;
 
-        let prediction = null;
+        let prediction = NULL;
 
         const channelBandpower = data.find(channelData => channelData.channel == CHANNEL);
 
