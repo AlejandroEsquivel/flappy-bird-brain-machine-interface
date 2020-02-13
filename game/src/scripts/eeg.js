@@ -1,3 +1,9 @@
+const $ = require("jquery");
+
+const config = require('./config');
+
+const { HTTP_HOST } = config;
+
 //signal type constants
 const ATTENTION = 'attention';
 const RELAXATION = 'relaxation'; 
@@ -22,6 +28,28 @@ const EEG = {
         signalType: null,
         [ATTENTION]: [],
         [RELAXATION]: []
+    },
+    sendDataToServer: async function(signalType){
+        
+        const url = new URL('/record',HTTP_HOST);
+        const data = this.recording[signalType];
+
+        if(signalType===NULL || !data.length) { 
+            return; 
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                signalType,
+                data
+            })
+        });
+
+        return response.json();
     },
     logOutput: log(eegDataLog),
     setRecordingSignalType: function(signalType){

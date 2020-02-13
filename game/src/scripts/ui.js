@@ -1,3 +1,4 @@
+const $ = require("jquery");
 const eeg = require('./eeg.js');
 
 // Generate DOM
@@ -10,14 +11,13 @@ const eeg = require('./eeg.js');
 })();
 
 // Event Listeners
-
 const relaxationSignalBtn = $('#relaxation-signal-btn');
 const attentionSignalBtn = $('#attention-signal-btn');
 const startGameBtn = $('#start-game-btn');
 const channelSelection = $('#channel-selection');
 const dataSelection = $('#data-selection');
-const recordingDataLog = $('#recording-data');
-const clearRecordingDataBtn = $('#clear-recorded-data-btn');
+const clearRecordedDataBtn = $('#clear-recorded-data-btn');
+const sendRecordedDataBtn = $('#send-recorded-data-btn');
 
 startGameBtn.click(() => {
     window.game.play();
@@ -28,7 +28,7 @@ channelSelection.change(function(){
     eeg.setChannel(this.value);
 })
 
-clearRecordingDataBtn.click(function(){
+clearRecordedDataBtn.click(function(){
     const signalType = dataSelection.val();
     if(signalType){
         eeg.setRecordingSignalType(eeg.SignalTypes.NULL);
@@ -36,6 +36,11 @@ clearRecordingDataBtn.click(function(){
         dataSelection.val(eeg.SignalTypes.NULL);
         $('.data').hide();
     }
+});
+
+sendRecordedDataBtn.click(function(){
+    const signalType = dataSelection.val();
+    eeg.sendDataToServer(signalType);
 })
 
 relaxationSignalBtn.click(function(){

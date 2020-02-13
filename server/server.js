@@ -6,11 +6,15 @@ const HOST = '127.0.0.1';
 const dgram = require('dgram');
 const server = dgram.createSocket('udp4');
 const express = require('express');
+const fs = require('fs');
+const cors = require('cors');
 
 const bodyParser = require('body-parser');
 
 const app = express();
+
 app.use(bodyParser.json());
+app.use(cors());
 
 const WebSocket = require('ws');
 const wss = new WebSocket.Server({ port: WS_PORT });
@@ -80,12 +84,40 @@ server.on('message', (message, remote)=> {
 });
 
 app.post('/record', (req, res) => {
-    
+
     const { signalType, data } = req.body;
 
-    return res.status(200).json({
-        signalType
-    });
+    try {
+
+        if(Object.values(SIGNAL_TYPES).indexOf(signalType) === -1){
+            throw new Error('Invalid signalType');
+        }
+        
+        const datasetPath = `./../datasets/${signalType}.json`;
+        const datasetExists = fs.existsSync(datasetPath);
+    
+        if(datasetExists){
+            let existingData = JSON.parse(fs.readFileSync(datasetPath));
+            data.forEach(vector => existingData.push(vector));
+            fs.writeFileSync(datasetPath,JSON.stringify(existingData));
+        }
+        else {
+            fs.writeFileSync(datasetPath,JSON.stringify(data));
+        }
+    
+        return res.status(200).json({
+            message: 'Wrote to corresponding dataset path',
+            datasetPath
+        });
+
+    } catch(err){
+        
+        return res.status(400).json({
+            message: err.message
+        })
+
+    }
+
 });
 
 // sever connections with inactive clients.

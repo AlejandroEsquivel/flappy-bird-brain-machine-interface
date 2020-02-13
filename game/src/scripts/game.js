@@ -6,13 +6,19 @@
 require("babel-polyfill");
 require('bootstrap/dist/css/bootstrap.min.css');
 
-
-window.$ = require("jquery");
-
-const eeg = require('./eeg');
-
 //Set up DOM / DOM Events
 require('./ui');
+
+const eeg = require('./eeg');
+const config = require('./config');
+
+const { 
+    WS_HOST,
+    PIPE_SPEED, 
+    BIRD_PROPEL_ACCELERATION, 
+    MAX_PIPE_HEIGHT_PROPORTION,
+    INIT_X_POSITION_BIRD 
+} = config;
 
 const Sprite = require('./classes/Sprite');
 const WebSocket = require('reconnectingwebsocket');
@@ -23,7 +29,7 @@ const cvs = document.getElementById('canvas');
 const ctx = cvs.getContext('2d');
 
 // establish connection to websocket server
-const ws = new WebSocket('ws://localhost:1234');
+const ws = new WebSocket(WS_HOST);
 
 ws.onopen = function open() {
     console.log('Connected to websocket server');
@@ -42,11 +48,7 @@ const bird = new Sprite('./images/bird.png');
 const background = new Sprite('./images/bg.png');
 const ground = new Sprite('./images/fg.png');
 
-
-// initilize Game State & Constants
-const PIPE_SPEED = 2;
-const BIRD_PROPEL_ACCELERATION = 50;
-const MAX_PIPE_HEIGHT_PROPORTION = 0.30;
+// constants & enums
 const DRAW_ONCE = 'DRAW_ONCE';
 const ACTION_TYPES = {
     'UP': 'UP',
@@ -88,7 +90,7 @@ function setDefaultState() {
     game.pipes = [];
     game.state.over = false;
     game.state.started = false;
-    bird.coords = { x: bird.element.width*5, y: GROUND_POSITION };
+    bird.coords = { x: INIT_X_POSITION_BIRD, y: GROUND_POSITION };
 }
 
 // Utility functions
