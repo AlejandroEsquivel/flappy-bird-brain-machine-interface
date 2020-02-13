@@ -6,7 +6,14 @@
 require("babel-polyfill");
 require('bootstrap/dist/css/bootstrap.min.css');
 
+
 window.$ = require("jquery");
+
+const eeg = require('./eeg');
+
+//Set up DOM / DOM Events
+require('./ui');
+
 const Sprite = require('./classes/Sprite');
 const WebSocket = require('reconnectingwebsocket');
 const BarChart = require('./classes/BarChart');
@@ -25,11 +32,6 @@ ws.onclose = function close() {
     console.log('Disconnected to websocket server');
 };
 
-//signal type constants
-const ATTENTION = 'attention';
-const RELAXATION = 'relaxation'; 
-const NULL = 'null';
-
 // global configuration
 window.assets = [];
 window.ctx = ctx;
@@ -40,8 +42,6 @@ const bird = new Sprite('./images/bird.png');
 const background = new Sprite('./images/bg.png');
 const ground = new Sprite('./images/fg.png');
 
-// 0-indexed EEG Channel
-let CHANNEL = 1;
 
 // initilize Game State & Constants
 const PIPE_SPEED = 2;
@@ -57,11 +57,6 @@ let GROUND_POSITION; //calculated once assets load
 
 // state and game methods
 window.game = {
-    recording: {
-        signalType: null,
-        [ATTENTION]: [],
-        [RELAXATION]: []
-    },
     pipes: [],
     state: {
         assetsLoaded: false,
@@ -151,7 +146,7 @@ async function drawFrame(cmd) {
     }
 
     ctx.fillText(`Score : ${game.state.score}`, 10, cvs.height - 20, 100);
-    ctx.fillText(`Alpha/Beta = ${game.state.bandpowerRatio.toFixed(3)}`, 10, cvs.height - 50,150)
+    //ctx.fillText(`Alpha/Beta = ${game.state.bandpowerRatio.toFixed(3)}`, 10, cvs.height - 50,150)
 
     if (cmd !== DRAW_ONCE && !game.state.over) {
         requestAnimationFrame(drawFrame);
@@ -176,138 +171,13 @@ Promise
 
     });
 
-// Generate DOM
-(function generateChannelOptions (){ 
-    [...Array(8)].forEach((n,index)=>{
-        const channel = index+1;
-        const option = $('<option></option>').text(`Channel ${channel}`).val(channel);
-        option.appendTo($('#channel-selection'));
-    })
-})();
-
-// Event Listeners
-
-const relaxationSignalBtn = $('#relaxation-signal-btn');
-const attentionSignalBtn = $('#attention-signal-btn');
-const startGameBtn = $('#start-game-btn');
-const channelSelection = $('#channel-selection');
-const dataSelection = $('#data-selection');
-const eegDataLog = $('#eeg-data');
-const recordingDataLog = $('#recording-data');
-const clearRecordingDataBtn = $('#clear-recorded-data-btn');
-
-startGameBtn.click(() => {
-    game.play();
-});
-
-channelSelection.change(function(){
-    CHANNEL = parseInt(this.value);
-})
-
-const setSignalType = (signalType)=>{
-    window.game.recording.signalType = signalType;
-}
-
-const updateRecordingData = (data)=>{
-    const signalType = window.game.recording.signalType;
-    if(signalType){
-       window.game.recording[signalType].push(data);
-    }
-}
-
-clearRecordingDataBtn.click(function(){
-    const signalType = dataSelection.val();
-    if(signalType){
-        window.game.recording.signalType = NULL;
-        window.game.recording[signalType] = [];
-        dataSelection.val(NULL);
-        $('.data').hide();
-    }
-})
-
-relaxationSignalBtn.click(function(){
-
-    const currentSignalType = window.game.recording.signalType;
-    let newSignalType = null;
-
-    if(currentSignalType === RELAXATION){
-        newSignalType = null;
-        relaxationSignalBtn.text('Record Relaxation Signal');
-    }
-    else {
-        newSignalType = RELAXATION;
-        relaxationSignalBtn.text('Stop Recording Relaxation Signal');
-        attentionSignalBtn.text('Record Attention Signal')
-    }
-    setSignalType(newSignalType);
-})
-
-attentionSignalBtn.click(function(){
-
-    const currentSignalType = window.game.recording.signalType;
-    let newSignalType = null;
-
-    if(currentSignalType === ATTENTION){
-        newSignalType = null;
-        attentionSignalBtn.text('Record Attention Signal');
-    }
-    else {
-        newSignalType = ATTENTION;
-        attentionSignalBtn.text('Stop Recording Attention Signal');
-        relaxationSignalBtn.text('Record Relaxation Signal')
-    }
-    setSignalType(newSignalType);
-})
-
-// Display Recording data
-dataSelection.change(function(){
-    const signalType = this.value;
-    if([RELAXATION,ATTENTION].indexOf(signalType) !== -1){
-        $('.data').show();
-        const data = window.game.recording[signalType];
-
-        const log = data.map(({alpha, beta, delta})=>{
-            return `Alpha: ${alpha}, Beta: ${beta}, Delta: ${delta}`
-        });
-
-        recordingDataLog.val(log.join('\n'));
-    }
-    else {
-        $('.data').hide();
-    }
-})
-
-const log = (el,msg)=> {
-    const tailData = el.val().split('\n').slice(0,50).join('\n');
-    el.val(`${msg}\n${tailData}`);
-}
-
  ws.onmessage = function incoming({data}) {
 
     data = JSON.parse(data);
     
-    const channelBandpower = data.find(channelData => channelData.channel == CHANNEL);
-
-    let action;
-
-    if(channelBandpower){
-        const { alpha, beta, delta } = channelBandpower;
-
-        const R = alpha/beta;
-
-        game.state.bandpowerRatio = R;
-
-        log(eegDataLog, `${CHANNEL}: Alpha: ${alpha.toFixed(4)}, Beta: ${beta.toFixed(4)}, R: ${R.toFixed(4)}`);
-
-        if(game.state.bandpowerRatio < 1){
-            action = ACTION_TYPES.UP;
-        }
-        else {
-            action = ACTION_TYPES.DOWN;
-        }
-
-        updateRecordingData(channelBandpower);
-    }
+    action = eeg.isAttentive(data) ?
+        ACTION_TYPES.UP : 
+        ACTION_TYPES.DOWN;
 
     if (game.state.over || !game.state.started) return;
 
