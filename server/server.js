@@ -78,7 +78,6 @@ server.on('message', (message, remote)=> {
 
     if(wss.clients.size || Math.round(Math.random()*(10)) < 5){
         wss.broadcast(broadcastData);
-        //console.debug(`Broadcasted to ${wss.clients.size} clients | ${new Date().getTime()}`);
     }
 
 });
@@ -98,7 +97,7 @@ app.post('/record', (req, res) => {
     
         if(datasetExists){
             let existingData = JSON.parse(fs.readFileSync(datasetPath));
-            data.forEach(vector => existingData.push(vector));
+            existingData = existingData.concat(data);
             fs.writeFileSync(datasetPath,JSON.stringify(existingData));
         }
         else {
@@ -111,11 +110,11 @@ app.post('/record', (req, res) => {
         });
 
     } catch(err){
-        
+
         return res.status(400).json({
             message: err.message
-        })
-
+        });
+        
     }
 
 });

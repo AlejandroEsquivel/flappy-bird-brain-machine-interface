@@ -1,0 +1,15 @@
+{
+  "name": "flappy-bci-model",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alejandro Esquivel",
+  "license": "ISC",
+  "dependencies": {
+    "@tensorflow/tfjs-node": "^1.5.2",
+    "machinelearn": "^2.1.5"
+  }
+}

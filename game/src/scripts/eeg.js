@@ -1,8 +1,21 @@
 const $ = require("jquery");
 
+const { LogisticRegression } = require('machinelearn/linear_model');
+
 const config = require('./config');
 
 const { HTTP_HOST } = config;
+
+//instantiate lr model instance
+const lr = new LogisticRegression();
+
+try{
+    const model = require('./../model.json');
+    lr.fromJSON(model);
+} catch(err){
+    alert('Error: You must train the logistic regression model before running application.');
+    console.error(err);
+}
 
 //signal type constants
 const ATTENTION = 'attention';

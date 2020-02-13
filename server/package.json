@@ -1,5 +1,5 @@
 {
-  "name": "eeg-udp-websocket",
+  "name": "flappy-bci-server",
   "version": "1.0.0",
   "description": "Gets FFT information from OpenBCI interface via UDP, sends processed data to browser via websockets.",
   "main": "server.js",

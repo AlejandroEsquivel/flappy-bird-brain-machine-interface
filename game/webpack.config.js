@@ -30,6 +30,9 @@ var config = {
         port: PORT,
         hot: false
     },
+    node: {
+        fs: 'empty'
+    },
     module: {
         rules: [
             { 
