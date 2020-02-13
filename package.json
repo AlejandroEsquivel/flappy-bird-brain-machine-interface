@@ -1,0 +1,19 @@
+{
+  "name": "flappy-bci",
+  "version": "1.0.0",
+  "description": "The purpose of this project is to be able to play Flappy Bird using an EEG, primarily focusing on the ratio of alpha to beta powerbands.",
+  "main": "index.js",
+  "scripts": {
+    "preinstall": "npm --prefix ./game install ./game; npm --prefix ./server install ./server; npm --prefix ./model install ./model"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlejandroEsquivel/flappy-bird-brain-machine-interface.git"
+  },
+  "author": "Alejandro Esquivel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AlejandroEsquivel/flappy-bird-brain-machine-interface/issues"
+  },
+  "homepage": "https://github.com/AlejandroEsquivel/flappy-bird-brain-machine-interface#readme"
+}
