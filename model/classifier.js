@@ -1,5 +1,6 @@
 const { LogisticRegression } = require('machinelearn/linear_model');
 const fs = require('fs');
+
 const featureVector = require('./../game/src/scripts/featureVector');
 
 const ATTENTION_RESPONSE = 1;

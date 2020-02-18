@@ -23,6 +23,14 @@ const ATTENTION = 'attention';
 const RELAXATION = 'relaxation'; 
 const NULL = 'null';
 
+const MODES = {
+    BANDPOWER: 'BANDPOWER',
+    FOCUS_WIDGET: 'FOCUS_WIDGET'
+}
+
+//current mode
+const MODE = MODES.FOCUS_WIDGET;
+
 const eegDataLog = $('#eeg-data');
 const recordingDataLog = $('#recording-data');
 
@@ -87,55 +95,71 @@ const EEG = {
         });
         recordingDataLog.val(log.join('\n'));
     },
-    classifySignal: function(data){
+    classifySignal: function (data) {
 
-        const CHANNEL = this.channel;
-        const channelBandpower = data.find(channelData => channelData.channel == CHANNEL);
+        let prediction;
 
-        let prediction = NULL;
-
-        if(channelBandpower){
-
-            const { alpha, beta, delta, theta, gamma } = channelBandpower;
-            const R = beta/alpha;
-
-            let isLrActive = false;
-
-            const features = featureVector(channelBandpower);
-
-            try{
-                const [p] = lr.predict([features]);
-
-                if(p === 1){
-                    prediction = ATTENTION;
-                 
-                } else if( p === 0) {
-                    prediction = RELAXATION;
+        switch (MODE) {
+            case MODES.FOCUS_WIDGET:
+            (()=>{
+                prediction = data == 1 ? ATTENTION : RELAXATION;
+                this.logOutput(`Is Focused: ${prediction === ATTENTION ? 'Yes': 'No'}`)
+            })();   
+            break;
+            case MODES.BANDPOWER:
+            (() => {
+                const CHANNEL = this.channel;
+                const channelBandpower = data.find(channelData => channelData.channel == CHANNEL);
+                
+                prediction = NULL;
+                
+                if (channelBandpower) {
+                    
+                    const { alpha, beta, delta, theta, gamma } = channelBandpower;
+                    const R = beta / alpha;
+                    
+                    let isLrActive = false;
+                    
+                    const features = featureVector(channelBandpower);
+                    
+                    try {
+                        const [p] = lr.predict([features]);
+                        
+                        if (p === 1) {
+                            prediction = ATTENTION;
+                            
+                        } else if (p === 0) {
+                            prediction = RELAXATION;
+                            
+                        }
+                        
+                        isLrActive = true;
+                        
+                    } catch (err) {
+                        //console.error(err)
+                    }
+                    
+                    game.state.bandpowerRatio = R;
+                    
+                    if (!isLrActive) {
+                        if (R > 0.5) {
+                            prediction = ATTENTION
+                        }
+                        else {
+                            prediction = RELAXATION
+                        }
+                    }
+                    
+                    this.updateRecordingData(channelBandpower);
+                    this.logOutput(`${CHANNEL}: Alpha: ${alpha.toFixed(4)}, Beta: ${beta.toFixed(4)}, Delta: ${delta} R: ${R.toFixed(4)}`)
                     
                 }
-
-                isLrActive = true;
-
-            } catch(err){
-                //console.error(err)
-            } finally{
-                console.log(prediction)
-            }
-           
-            game.state.bandpowerRatio = R;
-
-            if(!isLrActive){
-                if(R > 0.5){
-                    prediction = ATTENTION
-                }
-                else {
-                    prediction = RELAXATION
-                }
-            }
-
-            this.updateRecordingData(channelBandpower);
-            this.logOutput(`${CHANNEL}: Alpha: ${alpha.toFixed(4)}, Beta: ${beta.toFixed(4)}, Delta: ${delta} R: ${R.toFixed(4)}`)
-
+            })();
+            break;
+            default:
+                alert('No valid EEG Data collection mode selected');
+                throw new Error('invalid EEG mode')
+            break;  
         }
 
         return prediction;

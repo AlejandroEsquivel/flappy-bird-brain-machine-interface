@@ -22,7 +22,8 @@ const wss = new WebSocket.Server({ port: WS_PORT });
 const MODES = {
     'BANDPOWER': 'BANDPOWER',
     'FFT': 'FFT',
-    'TIMESERIES': 'TIMESERIES'
+    'TIMESERIES': 'TIMESERIES',
+    'FOCUS_WIDGET': 'FOCUS_WIDGET'
 }
 
 const SIGNAL_TYPES = {
@@ -30,7 +31,7 @@ const SIGNAL_TYPES = {
     'RELAXATION': 'relaxation'
 }
 
-const mode = MODES.BANDPOWER;
+const mode = MODES.FOCUS_WIDGET;
 
 
 wss.broadcast = (data) =>{
@@ -53,11 +54,13 @@ wss.on('connection', function connection(ws) {
 server.on('message', (message, remote)=> {
 
     let broadcastData;
-
-    const eegData = JSON.parse(message.toString('utf8')).data;
+    let eegData;
 
     switch (mode) {
         case MODES.BANDPOWER:
+            
+        eegData = JSON.parse(message.toString('utf8')).data;
+
             eegData.forEach((channelData, channelIndex) => {
                 broadcastData = broadcastData || [];
                 const [delta, theta, alpha, beta, gamma] = channelData;
@@ -72,11 +75,12 @@ server.on('message', (message, remote)=> {
             });
         break;
         default:
+            eegData =  JSON.parse(message.toString('utf8').replace(']','')).data;
             broadcastData = eegData;
         break;
     }
 
-    if(wss.clients.size || Math.round(Math.random()*(10)) < 5){
+    if(wss.clients.size){
         wss.broadcast(broadcastData);
     }
 
