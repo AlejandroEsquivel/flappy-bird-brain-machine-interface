@@ -1,4 +1,5 @@
 const $ = require("jquery");
+const featureVector = require('./featureVector');
 
 const { LogisticRegression } = require('machinelearn/linear_model');
 
@@ -80,34 +81,56 @@ const EEG = {
         }
     },
     displayRecordingData: function(signalType){
-
         const data = this.recording[signalType];
         const log = data.map(({alpha, beta, delta})=>{
             return `Alpha: ${alpha}, Beta: ${beta}, Delta: ${delta}`
         });
-
         recordingDataLog.val(log.join('\n'));
     },
     classifySignal: function(data){
 
         const CHANNEL = this.channel;
+        const channelBandpower = data.find(channelData => channelData.channel == CHANNEL);
 
         let prediction = NULL;
 
-        const channelBandpower = data.find(channelData => channelData.channel == CHANNEL);
-
         if(channelBandpower){
 
-            const { alpha, beta, delta, theta } = channelBandpower;
+            const { alpha, beta, delta, theta, gamma } = channelBandpower;
             const R = beta/alpha;
 
+            let isLrActive = false;
+
+            const features = featureVector(channelBandpower);
+
+            try{
+                const [p] = lr.predict([features]);
+
+                if(p === 1){
+                    prediction = ATTENTION;
+                 
+                } else if( p === 0) {
+                    prediction = RELAXATION;
+                    
+                }
+
+                isLrActive = true;
+
+            } catch(err){
+                //console.error(err)
+            } finally{
+                console.log(prediction)
+            }
+           
             game.state.bandpowerRatio = R;
 
-            if(R > 1){
-                prediction = ATTENTION
-            }
-            else {
-                prediction = RELAXATION
+            if(!isLrActive){
+                if(R > 0.5){
+                    prediction = ATTENTION
+                }
+                else {
+                    prediction = RELAXATION
+                }
             }
 
             this.updateRecordingData(channelBandpower);

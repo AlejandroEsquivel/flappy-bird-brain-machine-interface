@@ -107,7 +107,8 @@ const generateNewPipe = async () => {
     game.pipes.push(pipe);
 }
 
-// ------- Draw Frame Method
+
+// ------- Draw Frame Method - 0.15s
 async function drawFrame(cmd) {
 
     const { x: bX, y: bY } = bird.coords;
@@ -173,15 +174,24 @@ Promise
 
     });
 
+ let lastMessageAt;
+ 
  ws.onmessage = function incoming({data}) {
+
+    if (game.state.over || !game.state.started) return;
+
+    if(lastMessageAt){
+        let nowAt = new Date().getTime();
+        if((nowAt - lastMessageAt)/1000 <= (0.15/2)){
+            return;
+        }
+    }
 
     data = JSON.parse(data);
     
     action = eeg.isAttentive(data) ?
         ACTION_TYPES.UP : 
         ACTION_TYPES.DOWN;
-
-    if (game.state.over || !game.state.started) return;
 
     if (action === ACTION_TYPES.UP) {
         if (bird.coords.y - BIRD_PROPEL_ACCELERATION > 0) {
@@ -200,4 +210,6 @@ Promise
             bird.draw(null, GROUND_POSITION);
         }
     }
+
+    lastMessageAt = new Date().getTime();
 };

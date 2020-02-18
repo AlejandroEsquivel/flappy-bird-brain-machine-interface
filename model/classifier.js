@@ -1,24 +1,9 @@
 const { LogisticRegression } = require('machinelearn/linear_model');
 const fs = require('fs');
+const featureVector = require('./../game/src/scripts/featureVector');
 
 const ATTENTION_RESPONSE = 1;
 const RELAXATION_RESPONSE = 0;
-
-const prepareFeatureVector = (vector) => {
-    const { delta, theta, alpha, gamma, beta } = vector;
-    return [
-        alpha, 
-        beta, 
-        delta, 
-        theta, 
-        gamma, 
-        delta*theta,
-        delta*theta*alpha,
-        (beta/alpha), 
-        (beta/(alpha+delta)), 
-        (beta/(alpha+delta+theta))
-    ];
-}
 
 const getDataset = () => {
 
@@ -37,13 +22,13 @@ const getDataset = () => {
     const relaxationData = JSON.parse(fs.readFileSync(relaxationDatasetPath));
 
     attentionData.forEach(vector => {
-        const features = prepareFeatureVector(vector);
+        const features = featureVector(vector);
         designMatrix.push(features);
         responseVector.push(ATTENTION_RESPONSE);
     });
 
     relaxationData.forEach(vector => {
-        const features = prepareFeatureVector(vector);
+        const features = featureVector(vector);
         designMatrix.push(features);
         responseVector.push(RELAXATION_RESPONSE);
     });
