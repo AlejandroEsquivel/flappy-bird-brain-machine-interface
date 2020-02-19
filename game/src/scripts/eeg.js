@@ -29,7 +29,7 @@ const MODES = {
 }
 
 //current mode
-const MODE = MODES.FOCUS_WIDGET;
+const MODE = MODES.BANDPOWER;
 
 const eegDataLog = $('#eeg-data');
 const recordingDataLog = $('#recording-data');

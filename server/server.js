@@ -31,7 +31,7 @@ const SIGNAL_TYPES = {
     'RELAXATION': 'relaxation'
 }
 
-const mode = MODES.FOCUS_WIDGET;
+const mode = MODES.BANDPOWER;
 
 
 wss.broadcast = (data) =>{

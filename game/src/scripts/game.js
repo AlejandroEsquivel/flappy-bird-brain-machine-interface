@@ -54,6 +54,10 @@ const ACTION_TYPES = {
     'UP': 'UP',
     'DOWN': 'DOWN'
 }
+const PIPE_DIRECTIONS = {
+    NORTH: 'NORTH',
+    SOUTH: 'SOUTH'
+}
 
 let GROUND_POSITION; //calculated once assets load
 
@@ -71,7 +75,7 @@ window.game = {
         if(game.state.started){ return; }
         game.state.score = 0;
         game.state.started = true;
-        return generateNewPipe().then(drawFrame);
+        return generateNewPipe(PIPE_DIRECTIONS.SOUTH).then(drawFrame);
     },
     reset: () => {
         if(!game.state.assetsLoaded){ return; }
@@ -95,15 +99,31 @@ function setDefaultState() {
 
 // Utility functions
 
-const generateNewPipe = async () => {
-    const pipe = new Sprite('images/pipeSouth.png');
-    //wait until asset loads
-    await pipe.onLoad();
-    pipe.coords = {
-        x: cvs.width,
-        y: cvs.height - Math.round(Math.random() * pipe.element.height * MAX_PIPE_HEIGHT_PROPORTION) - ground.element.height
-    }
+const generateNewPipe = async (direction) => {
 
+    let pipe;
+
+    if(!direction || direction === PIPE_DIRECTIONS.SOUTH){
+        pipe = new Sprite('images/pipeSouth.png');
+        //wait until asset loads
+        await pipe.onLoad();
+        pipe.coords = {
+            x: cvs.width,
+            y: cvs.height - Math.round(Math.random() * pipe.element.height * MAX_PIPE_HEIGHT_PROPORTION) - ground.element.height
+        }
+        pipe.direction = PIPE_DIRECTIONS.SOUTH;
+    }
+    else if(direction === PIPE_DIRECTIONS.NORTH){
+        pipe = new Sprite('images/pipeNorth.png');
+        //wait until asset loads
+        await pipe.onLoad();
+        pipe.coords = {
+            x: cvs.width,
+            y: -1*((1-MAX_PIPE_HEIGHT_PROPORTION)*pipe.element.height)
+        }
+        pipe.direction = PIPE_DIRECTIONS.NORTH;
+    }
+    
     game.pipes.push(pipe);
 }
 
@@ -131,8 +151,14 @@ async function drawFrame(cmd) {
         pH = pipe.element.height;
         pipe.moveLeft(PIPE_SPEED);
 
+        const horizontalCollision = bX + bW >= pX && bX <= pX + pW;
+        const vericalCollision = pipe.direction === PIPE_DIRECTIONS.SOUTH ?
+            bY + bH >= pY :
+            bY + bH <= pH*MAX_PIPE_HEIGHT_PROPORTION
+
+
         // detect collision, else count score once if bird past pipe.
-        if (bX + bW >= pX && bX <= pX + pW && bY + bH >= pY) {
+        if(horizontalCollision && vericalCollision) {
             game.stop(1000);
         }
         else if (bX + bW >= pX + pW && !pipe.counted) {
@@ -141,8 +167,12 @@ async function drawFrame(cmd) {
         }
 
         if (pipe.coords.x <= - pipe.element.width) {
+            const pipeDirection = Math.random() <= 0.5 ? 
+                PIPE_DIRECTIONS.SOUTH :
+                PIPE_DIRECTIONS.NORTH;
+
             //create a new pipe
-            await generateNewPipe();
+            await generateNewPipe(pipeDirection);
             //remove pipe that has passed
             game.pipes.splice(i, 1);
         }
@@ -178,8 +208,6 @@ Promise
  
  ws.onmessage = function incoming({data}) {
 
-    if (game.state.over || !game.state.started) return;
-
     if(lastMessageAt){
         let nowAt = new Date().getTime();
         if((nowAt - lastMessageAt)/1000 <= (0.15/2)){
@@ -192,6 +220,8 @@ Promise
     action = eeg.isAttentive(data) ?
         ACTION_TYPES.UP : 
         ACTION_TYPES.DOWN;
+
+    if (game.state.over || !game.state.started) return;
 
     if (action === ACTION_TYPES.UP) {
         if (bird.coords.y - BIRD_PROPEL_ACCELERATION > 0) {
