@@ -129,8 +129,7 @@ const EEG = {
                             prediction = ATTENTION;
                             
                         } else if (p === 0) {
-                            prediction = RELAXATION;
-                            
+                            prediction = RELAXATION; 
                         }
                         
                         isLrActive = true;
@@ -151,7 +150,7 @@ const EEG = {
                     }
                     
                     this.updateRecordingData(channelBandpower);
-                    this.logOutput(`${CHANNEL}: Alpha: ${alpha.toFixed(4)}, Beta: ${beta.toFixed(4)}, Delta: ${delta} R: ${R.toFixed(4)}`)
+                    this.logOutput(`${CHANNEL}: Alpha: ${alpha.toFixed(4)}, Beta: ${beta.toFixed(4)}, Delta: ${delta}, R: ${R.toFixed(4)} | ${prediction}`)
                     
                 }
             })();

@@ -6,6 +6,14 @@ The purpose of this project is to be able to play Flappy Bird using an EEG where
 
 ## Using OpenBCI Cyton Circuit + EEG Cap
 
+### Installation
+
+Run the following script:
+
+```
+npm install
+```
+
 ### Browser Game 
 
 Location: `./game`
