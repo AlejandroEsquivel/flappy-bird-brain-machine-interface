@@ -1,8 +1,8 @@
 #  Brain–Machine Interface - Flappy Bird
 
-![](./screenshot.png)
-
 The purpose of this project is to be able to play Flappy Bird using an EEG where focusing will cause the bird to move up and relaxing will move the bird down. This inference will be made on the client side (browser) using a logistic regression model.
+
+![](./screenshot.png)
 
 ## Using OpenBCI Cyton Circuit + EEG Cap
 
