@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "bootstrap": "^4.3.1",
-    "chart.js": "^2.9.3",
+    "chart.js": "^2.9.4",
     "isomorphic-ws": "^4.0.1",
     "jquery": "^3.4.1",
     "machinelearn": "^2.1.5",
