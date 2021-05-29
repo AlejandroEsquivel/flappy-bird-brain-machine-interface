@@ -35,7 +35,7 @@
     "jquery": "^3.4.1",
     "machinelearn": "^2.1.5",
     "reconnectingwebsocket": "^1.0.0",
-    "ws": "^7.2.0"
+    "ws": "^7.4.6"
   },
   "browser": {
     "fs": false
